@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <link rel="icon" href="/favicon.ico" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>未命名标题</title>
+    <script>
+      /* eslint-disable */
+      ; (function flexible(window, document) {
+          var remUnit = 200 // 设计稿（750px）于rem的转换比率
+          var docEl = document.documentElement
+          var dpr = window.devicePixelRatio || 1
+          var isAndroid = window.navigator.appVersion.match(/android/gi)
+          var isIPhone = window.navigator.appVersion.match(/iphone/gi)
+          // set mata
+          function setMeta() {
+              // var scale = isIPhone ? 1 / dpr : 1 // 设置之后f2图表样式会受影响，待解决
+              var scale = 1
+              var text = '<meta name="viewport" content="initial-scale=' + scale + ', maximum-scale=' + scale + ',' +
+                  ' minimum-scale=' + scale + ', width=device-width,' + ' user-scalable=no" />'
+              document.write(text)
+          }
+          setMeta()
+          // adjust system font size
+          function adjustSystemFontSize() {
+              // 解决微信调整字体适配
+              if (isAndroid) {
+                  if (typeof window.WeixinJSBridge === 'object' && typeof window.WeixinJSBridge.invoke ===
+                      'function') {
+                      handleFontSize()
+                  } else {
+                      document.addEventListener('WeixinJSBridgeReady', handleFontSize, false)
+                  }
+  
+                  function handleFontSize() {
+                      // 设置网页字体为默认大小
+                      window.WeixinJSBridge.invoke('setFontSizeCallback', {
+                          fontSize: 0
+                      })
+                      // 重写设置网页字体大小的事件
+                      window.WeixinJSBridge.on('menu:setfont', function () {
+                          WeixinJSBridge.invoke('setFontSizeCallback', {
+                              fontSize: 0
+                          })
+                      })
+                  }
+              } else {
+                  const style = document.createElement('style')
+                  style.innerHTML = 'body {-webkit-text-size-adjust: 100% !important;}'
+                  document.documentElement.appendChild(style)
+              }
+          }
+          adjustSystemFontSize()
+          // adjust body font size
+          function setBodyFontSize() {
+              if (document.body) {
+                  document.body.style.fontSize = (12 * dpr) + 'px'
+              } else {
+                  document.addEventListener('DOMContentLoaded', setBodyFontSize)
+              }
+          }
+          setBodyFontSize()
+  
+          // set 1rem = viewWidth / 10
+          function setRemUnit() {
+              var rem = Math.min(window.innerWidth, window.innerHeight) / (750/remUnit)
+              docEl.style.fontSize = rem + 'px'
+          }
+  
+          setRemUnit()
+  
+          // reset rem unit on page resize
+          window.addEventListener('resize', setRemUnit)
+          window.addEventListener('pageshow', function (e) {
+              if (e.persisted) {
+                  setRemUnit()
+              }
+          })
+  
+          // detect 0.5px supports
+          if (dpr >= 2) {
+              var fakeBody = document.createElement('body')
+              var testElement = document.createElement('div')
+              testElement.style.border = '.5px solid transparent'
+              fakeBody.appendChild(testElement)
+              docEl.appendChild(fakeBody)
+              if (testElement.offsetHeight === 1) {
+                  docEl.classList.add('hairlines')
+              }
+              docEl.removeChild(fakeBody)
+          }
+      }(window, document))
+  
+  </script>
+  </head>
+  <body>
+    <div id="app"></div>
+    <script type="module" src="/src/main.js"></script>
+  </body>
+</html>
